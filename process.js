@@ -43,6 +43,13 @@ module.exports = class Process {
 
         this.pipeline.annotateTokensRegex(expr, true)
             .then(expr => {
+                // cycle thru each of the sentences
+                for(var i; i < expr.sentence.length; i++){
+                    // if there is a match in the sentence
+                    if(expr.sentence(i) > 0) {
+                        console.log("matched")
+                    }
+                }
             // returns an Expression Object
             // should cycle through each one of the sentences and see if there is a match
             expr.sentence(1).matches().map(match => {
