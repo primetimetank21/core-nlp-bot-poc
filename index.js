@@ -14,6 +14,9 @@ const fs = require('fs');
 const util = require('util');
 let Process = require('./process');
 
+// init
+const pro = new Process('tokenize,ssplit,pos,lemma,ner,parse', "English");
+
 // assumes that the nlp is running on port 9000
 app.use(morgan('tiny'));
 app.use(cors());
@@ -25,13 +28,22 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
 
-const pro = new Process('tokenize,ssplit,pos,lemma,ner,parse', "English");
-pro.run('I love your portraits! how much do you charge for logos?');
+app.get('/init', (req, res) => {
+    pro.run('I hate this.', (msg) => {
+        console.log(msg);
+        res.end("hello");
+    });
+})
 
-// // listeners
-// const port = process.env.PORT || 4000
-// app.listen(port, () => {
-//     console.log(`listening on port: ${port}`);
-// })
+// pro.run('I love your portraits! how much do you charge for logos?', (msg) => {
+//     console.log("Hey! " + msg)
+// });
 
-//console.log(props);
+
+
+
+// listeners
+const port = process.env.PORT || 4000
+app.listen(port, () => {
+    console.log(`listening on port: ${port}`);
+})
