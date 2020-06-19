@@ -8,6 +8,9 @@ module.exports = class Process {
 
     
     constructor(annotators, language){
+        // set the connector up
+        //const connector = new CoreNLP.ConnectorServer({ dsn: "https://corenlp.run/" })
+
         // set the pipeline
         // might want to wrap this into a try catch statement
         this.pipeline = this.startPipeline(annotators, language)
@@ -20,7 +23,7 @@ module.exports = class Process {
                 {
                     // ruleName, pattern, which token mode it uses
                     "name": "Cost Request",
-                    "pattern": "[]* (how much) []* (charge) []* (logos|portraits|book illustrations)",
+                    "pattern": "[]* (how much) []* (charge|cost) []* (logos|portraits|book illustrations)",
                     "mode": "TOKEN",
                     "numExpectedValues": 3 // to limit iteration
                 }
@@ -34,7 +37,7 @@ module.exports = class Process {
     }
 
     // initialize the pipeline
-    startPipeline(annotators, lang){
+    startPipeline(annotators, lang, connector){
         const props = new CoreNLP.Properties({
             annotators: annotators,
         }); 
@@ -71,6 +74,7 @@ module.exports = class Process {
                     for(var i = 0; i <= expr.sentence.length; i++){
                         // if there is a match in the sentence
                         if(expr.sentence(i).matches().length > 0) {
+                            // display the words show the match
                             expr.sentence(i).matches().map(match => {
 
                                 // display the values
@@ -79,8 +83,9 @@ module.exports = class Process {
                                 }
                                 return
                             })
-                            this.updateContext(rule.name, true);
-                            serverCallback("We have detected a cost request!") // call back to the server
+                            // put into strong state
+                            this.updateContext(rule.name, "STRONG");
+                            serverCallback("We have detected a cost request!"); // call back to the server
                         } else {
                             // if not match
                             this.updateContext(rule.name, false);
@@ -88,7 +93,11 @@ module.exports = class Process {
                         }
                     }
                 }).catch(err => {
-                    console.log('err', err)
+                    if(err.message == 'Cannot read property \'matches\' of undefined') {
+                        console.log("No matches found.")
+                    } else {
+                        console.log(err.message)
+                    }
                 })
                 break;
             default:

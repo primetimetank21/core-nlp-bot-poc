@@ -15,6 +15,7 @@ const util = require('util');
 let Process = require('./process');
 
 // init
+
 const pro = new Process('tokenize,ssplit,pos,lemma,ner,parse', "English");
 
 // assumes that the nlp is running on port 9000
@@ -29,21 +30,33 @@ app.get('/', (req, res) => {
 });
 
 app.get('/init', (req, res) => {
-    pro.run('I hate this.', (msg) => {
-        console.log(msg);
-        res.end("hello");
-    });
+    
+    // no empty msgs
+    if(!req.body.msg || req.body.msg === ""){
+        console.log("There was an error. ")
+        res.status(400).send({
+            message: "Message Field cannot be empty."
+        });
+    }else {
+        // put a try catch here
+        pro.run(req.body.msg, (msg) => {
+            res.end(msg);
+        });
+    }
+    
 })
 
-// pro.run('I love your portraits! how much do you charge for logos?', (msg) => {
-//     console.log("Hey! " + msg)
-// });
+// for testing
+pro.run("How much do you charge for logos?".toLowerCase(), (msg) => {
+    console.log("\n" + msg)
+});
 
 
 
 
-// listeners
-const port = process.env.PORT || 4000
-app.listen(port, () => {
-    console.log(`listening on port: ${port}`);
-})
+
+// // listeners
+// const port = process.env.PORT || 4000
+// app.listen(port, () => {
+//     console.log(`listening on port: ${port}`);
+// })
