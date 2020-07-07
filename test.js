@@ -15,9 +15,20 @@
 
 // addUser("Jake", getUser)
 
+let _ = require("lodash");
 
-/**
- * Might want to work with keywords?
- * if it says logo, we can assume its asking for a logo?
- * If it asks for multiple then we can just put them in a list
- */
+let main_string = "Hey beautiful! I ran across some of your beautiful art on Pinterest and google and wanted to use it as a logo for my lash brand. I just wanted to ask permission before I used it. I look forward to hearing from you!!".split(" ")
+let str_set = new Set(main_string)
+let products = ["logos", "book illustrations", "book covers", "portraits"]
+
+// add the products
+function weaklyConfirm(set, arr){
+    for (let i = 0; i < arr.length; i++){
+        if(set.has(arr[i])){
+            console.log("true")
+        }
+    }
+}
+
+weaklyConfirm(str_set, products);
+ 

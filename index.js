@@ -39,7 +39,11 @@ app.get('/init', (req, res) => {
         });
     }else {
         // put a try catch here
-        pro.run(req.body.msg, (msg) => {
+        let incomingMessage = req.body.msg.toLowerCase();
+        console.log(incomingMessage);
+
+        // process the incoming msg
+        pro.run(incomingMessage, (msg) => {
             res.end(msg);
         });
     }
@@ -47,9 +51,10 @@ app.get('/init', (req, res) => {
 })
 
 // for testing
-pro.run("How much do you charge for logos?".toLowerCase(), (msg) => {
-    console.log("\n" + msg)
+pro.run("I want a logo and a portrait.".toLowerCase(), (msg) => {
+    console.log("\nDETECTION: \n" + msg)
 });
+
 
 
 
