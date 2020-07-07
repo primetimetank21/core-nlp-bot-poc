@@ -51,7 +51,7 @@ app.get('/init', (req, res) => {
 })
 
 // for testing
-pro.run("I want a logo and a portrait.".toLowerCase(), (msg) => {
+pro.run("I want a logo.".toLowerCase(), (msg) => {
     console.log("\nDETECTION: \n" + msg)
 });
 

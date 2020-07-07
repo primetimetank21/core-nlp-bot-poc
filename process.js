@@ -20,13 +20,13 @@ module.exports = class Process {
             patterns: ['[]* (how much) []* (charge) []* (logos|portraits|book illustrations)'],
             products: ['logos', 'portraits', 'book illustrations'],
             rules: [
-                // {
-                //     // ruleName, pattern, which token mode it uses
-                //     "name": "Cost Request",
-                //     "pattern": "[]* (how much) []* (charge|cost) []* (logos|portraits|book illustrations)",
-                //     "mode": "TOKEN",
-                //     "numExpectedValues": 3 // to limit iteration
-                // },
+                {
+                    // ruleName, pattern, which token mode it uses
+                    "name": "Cost Request Strong",
+                    "pattern": "[]* (how much) []* (charge|cost) []* (logos|portraits|book illustrations)",
+                    "mode": "TOKEN",
+                    "numExpectedValues": 3 // to limit iteration
+                },
                 {
                     // a second rule to weakly determine it - latest addition
                     "name": "Cost Request Weak",
@@ -88,14 +88,14 @@ module.exports = class Process {
 
                                 // display the values
                                 for(var j = 1; j <= rule.numExpectedValues; j++){
-                                    console.log("Data:")
+                                    //console.log("Data:")
                                     console.log(match._data.text);
                                     console.log("\n")
                                 }
                                 return
                             })
                             // put into strong state
-                            this.updateContext(rule.name, "STRONG");
+                            this.updateContext(rule.name, "True");
                             serverCallback("We have detected a cost request!"); // call back to the server
                         } else {
                             // if not match
