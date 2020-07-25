@@ -95,7 +95,7 @@ module.exports = class Process {
                                 return
                             })
                             // put into strong state
-                            this.updateContext(rule.name, "True");
+                            this.updateContext(rule.name, true);
                             serverCallback("We have detected a cost request!"); // call back to the server
                         } else {
                             // if not match

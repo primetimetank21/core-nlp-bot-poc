@@ -29,7 +29,7 @@ app.get('/', (req, res) => {
     res.sendFile(__dirname + "/index.html");
 });
 
-app.get('/init', (req, res) => {
+app.get('/get-status', (req, res) => {
     
     // no empty msgs
     if(!req.body.msg || req.body.msg === ""){
@@ -60,8 +60,8 @@ app.get('/init', (req, res) => {
 
 
 
-// // listeners
-// const port = process.env.PORT || 4000
-// app.listen(port, () => {
-//     console.log(`listening on port: ${port}`);
-// })
+// listeners
+const port = process.env.PORT || 4000
+app.listen(port, () => {
+    console.log(`listening on port: ${port}`);
+})
