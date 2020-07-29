@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/get-status', (req, res) => {
-    
+
     // no empty msgs
     if(!req.body.msg || req.body.msg === ""){
         console.log("There was an error. ")
@@ -44,10 +44,10 @@ app.get('/get-status', (req, res) => {
 
         // process the incoming msg
         pro.run(incomingMessage, (msg) => {
-            res.end(msg);
+            res.end("hey");
         });
     }
-    
+
 })
 
 // // for testing
