@@ -13,24 +13,29 @@ module.exports = class Process {
 
         // set the pipeline
         // might want to wrap this into a try catch statement
-        this.pipeline = this.startPipeline(annotators, language, connector)
+        try {
+          this.pipeline = this.startPipeline(annotators, language, connector)
+        }catch(e) {
+          console.log(e);
+        }
+
 
         // holds all the extra variable that this needs
         this.state = {
             patterns: ['[]* (how much) []* (charge) []* (logos|portraits|book illustrations)'],
             products: ['logos', 'portraits', 'book illustrations'],
             rules: [
-                {
-                    // ruleName, pattern, which token mode it uses
-                    "name": "Cost Request Strong",
-                    "pattern": "[]* (how much) []* (charge|cost) []* (logos|portraits|book illustrations)",
-                    "mode": "TOKEN",
-                    "numExpectedValues": 3, // to limit iteration
-                    "response": "We've detected a strong request!" // not final
-                },
+                // {
+                //     // ruleName, pattern, which token mode it uses
+                //     "name": "Cost Request Strong",
+                //     "pattern": "[]* (how much) []* (charge|cost) []* (logos|portraits|book illustrations)",
+                //     "mode": "TOKEN",
+                //     "numExpectedValues": 3, // to limit iteration
+                //     "response": "We've detected a strong request!" // not final
+                // },
                 {
                     // a second rule to weakly determine it - latest addition
-                    "name": "Cost Request Weak",
+                    "name": "Cost Request",
                     "pattern": "(logo | logos | book illustrations | portrait | portraits)",
                     "mode": "TOKEN",
                     "numExpectedValues": 3,
@@ -123,9 +128,6 @@ module.exports = class Process {
                             this.updateContext(rule.name, false);
                         }
                     }
-
-
-
                 }).catch(err => {
                     if(err.message == 'Cannot read property \'matches\' of undefined') {
                         console.log("No matches found.")
@@ -144,6 +146,7 @@ module.exports = class Process {
         // for each rule
         await Promise.all(this.state.rules.map( async (rule) => {
             // create an expression
+            console.log("creating expr for rule: " +  rule.name + "....\n");
             const expr = this.initExpression(incomingMsg, rule.pattern);
             //console.log(expr)
 
@@ -151,10 +154,13 @@ module.exports = class Process {
             const result = await this.runPipeline(expr, rule);
 
         }));
-
-        // can evaulate here
-        // do the server call back here
-        console.log("getting callee?")
-        this.respond(serverCallback);
     }
+
+    // // should be the main run function
+    // async run(incoming, callback){
+    //   this.analyze(incoming, callback, () => {
+    //
+    //   });
+    //
+    // }
 }

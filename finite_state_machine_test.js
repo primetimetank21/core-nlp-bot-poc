@@ -16,6 +16,8 @@ onLeaveState - fired when leaving any state
 onTransition - fired during any transition
 onEnterState - fired when entering any state
 onAfterTransition - fired after any transition
+
+seems like the best way to deal with async calls is by putting the promises in the transition functions instead :)
 */
 
 var fsm = new StateMachine({
@@ -49,6 +51,7 @@ var fsm = new StateMachine({
     }
   }
 });
+
 
 // setting up lifecyle events
 fsm.initialize().then(() => {
