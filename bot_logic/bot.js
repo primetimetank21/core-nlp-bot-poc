@@ -6,7 +6,8 @@ Will access information from the
 */
 
 var StateMachine = require('javascript-state-machine');
-var _ = require('lodash'); 
+var _ = require('lodash');
+const chalk = require("chalk");
 
 module.exports = class Brain {
     
@@ -22,9 +23,6 @@ module.exports = class Brain {
             ],
             methods: {
               onCostRequest: () => {
-                return new Promise((resolve) => {
-
-                })
                 console.log("Cost Request");
               },
               onInitialize: () => {
@@ -65,6 +63,7 @@ module.exports = class Brain {
 
         this.greeting = 'Thank you for the inquiry!\nHere is a quick price list of my most popular products!'
 
+        this.disclaimer = "\nThis action was completed by a bot.\nPlease contact the developer if you have any issues.\n"
         // init the bot
         this.fsm.initialize();
     }
@@ -78,7 +77,7 @@ module.exports = class Brain {
         return priceListString
     }
 
-    /* Find the keyword with the most occurences TODO */
+    /* Find the keyword with the most occurences NOT USED*/
     async findKeywords(wordList){
         //make function into promise?
         console.log("WE REACHED THE KEYWORD FINDING!>>>>>>")
@@ -110,10 +109,10 @@ module.exports = class Brain {
         return new Promise(async (resolve) => {
             //console.log("WE REACHED THE RESPONDING>>>>>>")
             var response = ""
-            var keywordModifier = await this.findKeywords(lcWordList);
-            response = `Hi, ${customerName}! 👋\n` + keywordModifier;
+            response = `Hi, ${customerName}! 👋\n`;
             response += `Thank you for the inquiry! Here's a list of my most popular products:\n${this.generatePriceList()}\n`;
             response += `Can you describe your idea in a couple of sentences?`
+            response += "\n\n\n" + this.disclaimer;
             // send the response out
             resolve(response);
         })
@@ -124,12 +123,22 @@ module.exports = class Brain {
         var response = "";
         var lc = incomingMessage.split(' ');
 
-        console.log("from respond method...")
+        // handle the initState
+        console.log(chalk.red("from respond method...\n"))
+
+        // handle transitioning out of InitState
         if(this.fsm.state === 'InitState'){
             this.respondToCostRequest(lc, customerName)
                 .then((resp) => {
+                    // transition state
+                    this.fsm.costRequest();
                     serverCallback(resp);
                 }).catch(e => console.log(e));
+        }
+
+        // handle submission of an idea
+        if(this.fsm.state === 'RequestState'){
+            serverCallback(`HI, we're handling the idea you submitted: ${incomingMessage}`)
         }
     }
 }
