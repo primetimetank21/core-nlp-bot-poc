@@ -29,8 +29,16 @@ var fsm = new StateMachine({
     {name: 'reset', from: "*", to: 'InitState'} // probably won't use very often
   ],
   methods: {
-    onCostRequest: () => {
-      print("Cost Request")
+    onCostRequest: (lifecycle, timeout) => {
+      print("Cost Request Transition....")
+
+      console.log("From State: " + lifecycle.from);
+      console.log("To State: " + lifecycle.to + "\n"); // 'step'
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, timeout)
+      })
       // to do things asyncly you need to use promises
     },
     onIdeaSubmission: () => {
@@ -39,26 +47,44 @@ var fsm = new StateMachine({
     onReset: () => {
       print('Reset')
     },
-    onTransition: (lifecycle) => {
+    onTransition: (lifecycle, timeout) => {
       console.log("From State: " + lifecycle.from);
       console.log("To State: " + lifecycle.to + "\n"); // 'step'
       return new Promise((resolve) => {
         setTimeout(() => {
           resolve();
-        }, 1000)
+        }, timeout)
       })
-
     }
   }
 });
 
+// add an observe methods
+fsm.observe('onInitState', () => {
+  console.log('entered the INIT STATE');
+});
+
+// THIS ONE WAS CALLED the transtion observer states work?
+fsm.observe('onInitialize', () => {
+  console.log('INTIALIZED....');
+})
+// var fsm2 = new StateMachine({
+//   init: 'A',
+//   transitions: [
+//     { name: 'step', from: 'A', to: 'B' }
+//   ],
+//   methods: {
+//     onStep: function() { console.log('stepped');         },
+//     onA:    function() { console.log('entered state A'); },
+//     onB:    function() { console.log('entered state B'); },
+//   }
+// });
 
 // setting up lifecyle events
-fsm.initialize().then(() => {
-  print(fsm.state)
-  fsm.costRequest().then(() => {
-    print(fsm.state);
+fsm.initialize(500).then(() => {
+  print("Current State: " + fsm.state)
+  fsm.costRequest(2000).then(() => {
+    print("Current State: " + fsm.state);
   })
 });
-// fsm.costRequest();
-// print(fsm.state);
+

@@ -5,6 +5,11 @@ const url = require('url');
 const http = require('http');
 const dotenv = require('dotenv').config();
 
+var bot = require('./bot');
+
+// init bot
+var responder = new bot();
+
 // this works
 const PORT = 3000;
 
@@ -72,7 +77,8 @@ async function sayHi(event) {
   const senderScreenName = event.users[message.message_create.sender_id].screen_name;
 
   // senderScreen name is the sender of the original message
-  console.log(`${senderScreenName} says ${message.message_create.message_data.text}`);
+  var incomingMessage = message.message_create.message_data.text;
+  console.log(`${senderScreenName} says ${incomingMessage}`);
 
   const requestConfig = {
     url: 'https://api.twitter.com/1.1/direct_messages/events/new.json',
@@ -102,6 +108,7 @@ function sleep(ms){
 
 (async start => {
   try {
+    
 
     // create a new webhook
     const webhook = new Autohook({

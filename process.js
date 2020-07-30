@@ -3,6 +3,10 @@ const CoreNLP = require('corenlp')
 
 // DOCS: https://gerardobort.github.io/node-corenlp/docs/index.html
 
+
+/*
+THIS FILE IS NO LONGER IN USE
+*/ 
 // export it one time
 module.exports = class Process {
 
@@ -38,7 +42,7 @@ module.exports = class Process {
                     "name": "Cost Request",
                     "pattern": "(logo | logos | book illustrations | portrait | portraits)",
                     "mode": "TOKEN",
-                    "numExpectedValues": 3,
+                    "numExpectedValues": 3, // this should not be here
                     "response": "We've detected a weak request!" // not going to be the way I do this in the future
                 }
             ],
@@ -97,7 +101,7 @@ module.exports = class Process {
     }
 
     // analyze the tokens
-    runPipeline(expr, rule){
+    runPipelineOld(expr, rule){
 
         switch(rule.mode){
             case "TOKEN":
@@ -141,10 +145,18 @@ module.exports = class Process {
         }
     }
 
+    runPipeline(expr, rule){
+        // this function runs the pipeline that does the actual understanding through corenlp
+        return new Promise((resolve, reject) => {
+
+        })
+    }
+
+
     // process an input - should be called on the on input event
-    async run(incomingMsg, serverCallback){
+    run(incomingMsg, serverCallback){
         // for each rule
-        await Promise.all(this.state.rules.map( async (rule) => {
+        Promise.all(this.state.rules.map( async (rule) => {
             // create an expression
             console.log("creating expr for rule: " +  rule.name + "....\n");
             const expr = this.initExpression(incomingMsg, rule.pattern);
@@ -153,14 +165,45 @@ module.exports = class Process {
             // run the pipeline
             const result = await this.runPipeline(expr, rule);
 
-        }));
+        })).then(() => {
+            console.log("complete iteraation finished")
+        });
     }
 
-    // // should be the main run function
-    // async run(incoming, callback){
-    //   this.analyze(incoming, callback, () => {
-    //
-    //   });
-    //
-    // }
+    // test function
+    timeOut(t) {
+        return new Promise((resolve, reject) => {
+          setTimeout(() => {
+            if(t == 1000) {
+                reject(`Rejected in ${t}`);
+            }else {
+                resolve(`Completed in ${t}`);
+            }
+          }, t)
+        })
+    }
+
+    // second run function
+    test_promise_all() {
+        // time for completion
+        var somelist = [500, 1000, 1500, 2000];
+        var promises = []
+
+        // push/run the functions into a promises array
+        var promises = somelist.map((duration) => {
+            return this.timeOut(duration).catch(e => e) // handle error for each promise
+        });
+
+        // wait to all the promises are done
+        Promise.all(promises)
+            .then((resp) => console.log(resp))
+            .catch((error) => {
+                console.log(`Error in executing ${error}`);
+            });
+    }
+
+    // second run function
+    analyze(incomingMessage, callback) {
+
+    }
 }
