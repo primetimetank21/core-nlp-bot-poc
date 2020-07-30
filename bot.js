@@ -72,16 +72,16 @@ module.exports = class Brain {
     generatePriceList(){
         /**Generate a price list based on the products above */
         var priceListString = ''
-
-        for(var i = 0; i < this.productNamesCost.length, i++;){
+        for(var i = 0; i < this.productNamesCost.length; i++){
             priceListString += `${this.productNamesCost[i].name} range from ${this.productNamesCost[i].cost}.\n`
         }
         return priceListString
     }
 
     /* Find the keyword with the most occurences TODO */
-    findKeywords(wordList){
-
+    async findKeywords(wordList){
+        //make function into promise?
+        console.log("WE REACHED THE KEYWORD FINDING!>>>>>>")
         var wordCount = _.countBy(wordList)
 
         // omit uneeded keys
@@ -101,14 +101,18 @@ module.exports = class Brain {
         var costRange = this.productNamesCost.find(e => e.name === mostOccur);
         var mostOccurCapitalize = mostOccur[0].toUpperCase() + mostOccur.slice(1);
 
+        //console.log("WE HAVE FINISHED THE KEYWORD FINDING!>>>>>>")
+
         return `It seems like you're requesting a ${mostOccur}. ${mostOccurCapitalize} ranges from ${costRange.cost}.\n\n` 
     }
 
     respondToCostRequest(lcWordList, customerName){
-        return new Promise((resolve) => {
+        return new Promise(async (resolve) => {
+            //console.log("WE REACHED THE RESPONDING>>>>>>")
             var response = ""
-            response = `Hi, ${customerName}!\n` + this.findKeywords(lcWordList);
-            response += `Thank you for the inquiry! Here's a list of my most popular products:\n${this.generatePriceList()}`
+            var keywordModifier = await this.findKeywords(lcWordList);
+            response = `Hi, ${customerName}! 👋\n` + keywordModifier;
+            response += `Thank you for the inquiry! Here's a list of my most popular products:\n${this.generatePriceList()}\n`;
             response += `Can you describe your idea in a couple of sentences?`
             // send the response out
             resolve(response);
@@ -120,13 +124,12 @@ module.exports = class Brain {
         var response = "";
         var lc = incomingMessage.split(' ');
 
+        console.log("from respond method...")
         if(this.fsm.state === 'InitState'){
             this.respondToCostRequest(lc, customerName)
                 .then((resp) => {
-                    this.fsm.costRequest();
-                    //console.log(resp);
                     serverCallback(resp);
-                });
+                }).catch(e => console.log(e));
         }
     }
 }

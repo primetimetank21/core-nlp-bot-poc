@@ -1,5 +1,4 @@
 // this is the main testing file where we test state change
-
 let bot = require('./bot');
 
 // start the bot

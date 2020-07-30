@@ -78,26 +78,34 @@ async function sayHi(event) {
 
   // senderScreen name is the sender of the original message
   var incomingMessage = message.message_create.message_data.text;
+
   console.log(`${senderScreenName} says ${incomingMessage}`);
 
-  const requestConfig = {
-    url: 'https://api.twitter.com/1.1/direct_messages/events/new.json',
-    oauth: oAuthConfig,
-    json: {
-      event: {
-        type: 'message_create',
-        message_create: {
-          target: {
-            recipient_id: message.message_create.sender_id,
-          },
-          message_data: {
-            text: `Hi @${senderScreenName}! 👋`,
+  // get the response
+  responder.respond(incomingMessage.toLowerCase(), senderScreenName, async (bot_resp) => {
+
+     // post the bot response
+     const requestConfig = {
+      url: 'https://api.twitter.com/1.1/direct_messages/events/new.json',
+      oauth: oAuthConfig,
+      json: {
+        event: {
+          type: 'message_create',
+          message_create: {
+            target: {
+              recipient_id: message.message_create.sender_id,
+            },
+            message_data: {
+              text: bot_resp,
+            },
           },
         },
       },
-    },
-  };
-  await post(requestConfig);
+    };
+
+    // post it
+    await post(requestConfig);
+  });
 }
 
 function sleep(ms){
