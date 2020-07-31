@@ -8,6 +8,9 @@ Will access information from the
 var StateMachine = require('javascript-state-machine');
 var _ = require('lodash');
 const chalk = require("chalk");
+const fs = require("../firebase/firestore")
+const { v4:newUuid, parse } = require('uuid');
+var moment = require('moment');
 
 module.exports = class Brain {
     
@@ -19,7 +22,8 @@ module.exports = class Brain {
               {name: 'initialize', from: 'none', to: 'InitState'},
               {name: 'costRequest', from: 'InitState', to:'RequestState'}, // user makes a request -> a request is detected
               {name: 'ideaSubmission', from: 'RequestState', to:'ReviewState'}, // user submits an idea, goes to review
-              {name: 'reset', from: "*", to: 'InitState'} // probably won't use very often
+              {name: 'reset', from: "*", to: 'InitState'}, // probably won't use very often
+              {name: 'goto', from: "*", to: function(s){ return s}} 
             ],
             methods: {
               onCostRequest: () => {
@@ -64,6 +68,15 @@ module.exports = class Brain {
         this.greeting = 'Thank you for the inquiry!\nHere is a quick price list of my most popular products!'
 
         this.disclaimer = "\nThis action was completed by a bot.\nPlease contact the developer if you have any issues.\n"
+
+        // object to hold how wait time - this should be set by the user (in hours)
+        this.waitTime = 12
+
+        // should be one per instance of this class
+        this.UID = newUuid();
+
+        this.status = 'Just Created'
+
         // init the bot
         this.fsm.initialize();
     }
@@ -118,27 +131,86 @@ module.exports = class Brain {
         })
     }
 
-    respond(incomingMessage, customerName, serverCallback){
+    // handle the idea submission
+    respondToIdeaSubmission(msg, usn){
+        var requestFromClient = {};
+        var guid = newUuid();
+
+        return new Promise(async (resolve) => {
+            console.log(chalk.yellowBright("responding to idea submission..."))
+            
+            // get data ready to post
+            requestFromClient[guid] = {
+                name: usn,
+                dateCreated: new Date().toISOString(),
+                status: "Not Completed",
+                text: msg
+            }
+
+            // post
+            var completed = await fs.postRequest(usn, requestFromClient)
+
+            resolve(completed);
+
+        })
+    }
+
+    updateStatus(str){
+        this.status = str;
+        console.log(chalk.yellow(this.status))
+    }
+
+
+    respond(incomingMessage, customerName, serverCallback, ){
         // this is the sole entry point into the class
         var response = "";
         var lc = incomingMessage.split(' ');
 
         // handle the initState
-        console.log(chalk.red("from respond method...\n"))
-
-        // handle transitioning out of InitState
-        if(this.fsm.state === 'InitState'){
-            this.respondToCostRequest(lc, customerName)
-                .then((resp) => {
-                    // transition state
-                    this.fsm.costRequest();
-                    serverCallback(resp);
-                }).catch(e => console.log(e));
-        }
+        console.log(chalk.yellowBright("from respond method...\n"))
 
         // handle submission of an idea
         if(this.fsm.state === 'RequestState'){
-            serverCallback(`HI, we're handling the idea you submitted: ${incomingMessage}`)
+            this.respondToIdeaSubmission(incomingMessage, customerName)
+            .then((resp) => {
+                this.updateStatus("Submitted Idea Success, changing state...")
+                // might not need to transition state here
+                var response = `We've just submitted the idea for @LadyNefertiti to review!\n` +
+                                `She should respond within the next ${this.waitTime} hours.` +
+                                `When she does we'll notify you if your request was accepted!\n\n` + 
+                                `You can send more text of your idea if you'd like while you wait!\n\n` + 
+                                `Feel free to make another request using the command /request.\n` +
+                                `\nIf you have any questions, do "/help" \n` +
+                                `If you would like to report an issue, do "/issue"`+
+                                `${this.disclaimer}`
+
+                serverCallback(response, 'InitState')
+            }).catch(e => {
+                serverCallback(`It looks like we ran into an error: ${e}`)
+            })
         }
+
+        // use a switch statememnt instead 
+        // handle transitioning out of InitState
+        if(this.fsm.state === 'InitState'){
+            // updating
+            this.updateStatus("Handling Init State...")
+
+            this.respondToCostRequest(lc, customerName)
+                .then((resp) => {
+                    this.updateStatus("Response to Request Success, changing state...")
+                    
+                    // transition state
+                    //this.fsm.costRequest();
+
+                    
+
+                    // transition to the regular state
+                    serverCallback(resp, 'RequestState');
+                }).catch(e => console.log(chalk.red(`Responding to Cost Request Failed with error: ${e}`)));
+        }
+
+        
+        
     }
 }

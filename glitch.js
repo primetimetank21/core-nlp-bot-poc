@@ -4,8 +4,10 @@ const request = require('request');
 const url = require('url');
 const http = require('http');
 const dotenv = require('dotenv').config();
+const chalk = require("chalk");
 
-var bot = require('./bot');
+//** GLOBAL VARIABLES */
+var bot = require('./bot_logic/bot');
 
 // init bot
 var responder = new bot();
@@ -14,6 +16,8 @@ var responder = new bot();
 const PORT = 3000;
 
 const post = util.promisify(request.post);
+
+const appId = "18419607";
 
 // configuration for authN
 const oAuthConfig = {
@@ -70,6 +74,18 @@ async function sayHi(event) {
     return;
   }
 
+  // if the event is coming from me return 
+
+  // console.log(chalk.blue("SENDER ID ===> " + message.message_create.sender_id))
+  // console.log(chalk.blueBright("RECIEVER ID ===> " + message.message_create.target.recipient_id))
+  // console.log(chalk.blueBright("MESSAGE JSON ===> " + JSON.stringify(message)));
+
+  // stop talking to yourself
+  if(message.message_create.source_app_id === appId){
+    console.log(chalk.redBright("stop talking to yourself"));
+    return;
+  }
+
   // mark as read and indicate indicateTyping
   await markAsRead(message.message_create.id, message.message_create.sender_id, oAuthConfig);
   await indicateTyping(message.message_create.sender_id, oAuthConfig);
@@ -82,7 +98,7 @@ async function sayHi(event) {
   console.log(`${senderScreenName} says ${incomingMessage}`);
 
   // get the response
-  responder.respond(incomingMessage.toLowerCase(), senderScreenName, async (bot_resp) => {
+  responder.respond(incomingMessage.toLowerCase(), senderScreenName, async (bot_resp, target_state) => {
 
      // post the bot response
      const requestConfig = {
@@ -104,7 +120,19 @@ async function sayHi(event) {
     };
 
     // post it
-    await post(requestConfig);
+    console.log(chalk.yellow("Posting......"))
+    post(requestConfig).then((res) => {
+      // change state here
+      console.log(chalk.magenta(JSON.stringify(res)))
+
+      //transition to the right state?
+      responder.fsm.goto(target_state);
+
+      responder.updateStatus(`State changed to (RequestState): ${responder.fsm.state}\n\n=======`)
+      return // maybe this would only mke it go once
+    });
+
+    //responder.fsm.goto('RequestState');
   });
 }
 
