@@ -1,6 +1,7 @@
 // this will hold all of the firebase stuff that I'll need
 var admin = require("firebase-admin");
-const { v4: uuidv4 } = require('uuid');
+const { v4, uuidParse } = require('uuid');
+
 
 // get the credentials
 var serviceAccount = require("./ServiceAccountKey.json");
@@ -26,4 +27,6 @@ function postHuman(name, age){
 
 }
 
-postHuman("wilk33", 29363);
+//postHuman("wilk33", 29363);
+
+console.log(uuidParse('6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b'));
