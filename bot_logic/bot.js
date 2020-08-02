@@ -11,6 +11,7 @@ const chalk = require("chalk");
 const fs = require("../firebase/firestore")
 const { v4:newUuid, parse } = require('uuid');
 var moment = require('moment');
+var keyword_extractor = require('keyword-extractor'); // extract the keywords
 
 module.exports = class Brain {
     
@@ -75,7 +76,16 @@ module.exports = class Brain {
         // should be one per instance of this class
         this.UID = newUuid();
 
+        // placeholder variable -> should remove in final cut
         this.status = 'Just Created'
+
+        // configuration for the extractor
+        this.extractor_config = {
+            language:"english",
+            remove_digits: true,
+            return_changed_case:true,
+            remove_duplicates: false
+       }
 
         // init the bot
         this.fsm.initialize();
@@ -118,6 +128,8 @@ module.exports = class Brain {
         return `It seems like you're requesting a ${mostOccur}. ${mostOccurCapitalize} ranges from ${costRange.cost}.\n\n` 
     }
 
+    /** Find the keywords that are the most important */
+
     respondToCostRequest(lcWordList, customerName){
         return new Promise(async (resolve) => {
             //console.log("WE REACHED THE RESPONDING>>>>>>")
@@ -134,20 +146,26 @@ module.exports = class Brain {
     // handle the idea submission
     respondToIdeaSubmission(msg, usn){
         var requestFromClient = {};
-        var guid = newUuid();
+        // shouldn't have to create a new guid for each instance 
+        // will only need to change when the customer asks for a new request
+
+        // // get the type of project
+        // var keywords = 
 
         return new Promise(async (resolve) => {
             console.log(chalk.yellowBright("responding to idea submission..."))
             
             // get data ready to post
-            requestFromClient[guid] = {
+            // include more info:
+            // keywords, type of project
+            requestFromClient[this.guid] = {
                 name: usn,
                 dateCreated: new Date().toISOString(),
                 status: "Not Completed",
                 text: msg
             }
 
-            // post
+            // post to the database in firestore
             var completed = await fs.postRequest(usn, requestFromClient)
 
             resolve(completed);

@@ -2,6 +2,9 @@
 /** This is where the commands and their metadata goes
  * Information on the commands, command name, description and how to process each command are here
  */
+modules.exports = class CommandCenter {
+    
+}
 
 var commands = [
     {

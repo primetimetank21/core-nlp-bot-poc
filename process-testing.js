@@ -47,7 +47,3 @@ app.listen(port, () => {
     console.log(`listening on port: ${port}`);
 })
 
-
-
-
-//console.log(bot_response);
