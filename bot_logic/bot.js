@@ -113,19 +113,17 @@ module.exports = class Brain {
 
         // if it is undefined then return empty string
         if(_.isEmpty(keys)){
-            return ""
+            return "unknown"
         }
 
         console.log(keys)
 
         // find the key with the most occurences
         var mostOccur = Object.keys(keys).reduce((a, b) => keys[a] > keys[b] ? a : b);
-        var costRange = this.productNamesCost.find(e => e.name === mostOccur);
-        var mostOccurCapitalize = mostOccur[0].toUpperCase() + mostOccur.slice(1);
 
         //console.log("WE HAVE FINISHED THE KEYWORD FINDING!>>>>>>")
 
-        return `It seems like you're requesting a ${mostOccur}. ${mostOccurCapitalize} ranges from ${costRange.cost}.\n\n` 
+        return `${mostOccur}` 
     }
 
     /** Find the keywords that are the most important */
@@ -158,11 +156,13 @@ module.exports = class Brain {
             // get data ready to post
             // include more info:
             // keywords, type of project
-            requestFromClient[this.guid] = {
+            let product_type = await this.findKeywords(msg.split(" "))
+            requestFromClient[this.UID] = {
                 name: usn,
                 dateCreated: new Date().toISOString(),
                 status: "Not Completed",
-                text: msg
+                text: msg,
+                product: product_type
             }
 
             // post to the database in firestore
