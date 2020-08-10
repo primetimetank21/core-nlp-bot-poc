@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
+    <v-app-bar app color="white" dark>
       <div class="d-flex align-center">
         <v-img
           alt="Vuetify Logo"
@@ -11,7 +11,7 @@
           width="40"
         />
 
-        <span class="headline text-uppercase font-weight-light">
+        <span class="headline text-uppercase font-weight-light black--text">
           Jazzia Customer Service App
         </span>
       </div>
@@ -29,20 +29,21 @@
       </v-btn>
     </v-app-bar>
 
+    <!-- all the main info and router view go here-->
     <v-main>
-      <HelloWorld />
+      <Home/>
     </v-main>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld";
+import Home from "./views/Home";
 
 export default {
   name: "App",
 
   components: {
-    HelloWorld
+    Home
   },
 
   data: () => ({

@@ -1,7 +1,6 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
+  <div id="home" class="fill-height">
+    <HelloWorld/>
   </div>
 </template>
 
@@ -16,3 +15,23 @@ export default {
   }
 };
 </script>
+
+<style>
+  @keyframes bgcolor {
+    0% {
+      background-color: #ad7e7e
+    }
+    50% {
+      background-color: #fa7572
+    }
+    100% {
+      background-color: #5E3939
+    }
+  }
+  #home {
+    -webkit-animation: bgcolor 20s infinite;
+    animation: bgcolor 10s infinite;
+    -webkit-animation-direction: alternate;
+    animation-direction: alternate;
+  }
+</style>
