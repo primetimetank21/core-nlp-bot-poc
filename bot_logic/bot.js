@@ -101,7 +101,7 @@ module.exports = class Brain {
     }
 
     /* Find the keyword with the most occurences NOT USED*/
-    async findKeywords(wordList){
+    async findKeywords(wordList) {
         //make function into promise?
         console.log("WE REACHED THE KEYWORD FINDING!>>>>>>")
         var wordCount = _.countBy(wordList)
@@ -115,7 +115,7 @@ module.exports = class Brain {
         if(_.isEmpty(keys)){
             return "unknown"
         }
-
+        
         console.log(keys)
 
         // find the key with the most occurences
@@ -157,7 +157,7 @@ module.exports = class Brain {
             // include more info:
             // keywords, type of project
             let product_type = await this.findKeywords(msg.split(" "))
-            requestFromClient[this.UID] = {
+            requestFromClient  = {
                 name: usn,
                 dateCreated: new Date().toISOString(),
                 status: "Not Completed",
@@ -166,7 +166,8 @@ module.exports = class Brain {
             }
 
             // post to the database in firestore
-            var completed = await fs.postRequest(usn, requestFromClient)
+            // ISSUE HERE: user should be able to add new information to an existing request
+            var completed = await fs.postRequest(newUuid(), requestFromClient)
 
             resolve(completed);
 

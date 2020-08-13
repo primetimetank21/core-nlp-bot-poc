@@ -50,11 +50,11 @@ module.exports = {
         });
     
     },
-    postRequest(name, requestFromClient){
+    postRequest(id, requestFromClient){
 
         // post request to firestore
         return new Promise((resolve, reject) => {
-            db.collection('requests').doc(name).set(requestFromClient, { merge: true }).then(() => {
+            db.collection('requests').doc(id).set(requestFromClient, { merge: true }).then(() => {
                 console.log('added something to the database');
                 resolve("request posted successfully");
             }).catch((e) => {

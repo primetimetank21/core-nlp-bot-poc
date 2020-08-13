@@ -1,33 +1,71 @@
 <template>
     <v-card
             class="mx-auto"
-            max-width="344"
-            outlined
     >
-        <v-list-item three-line>
-            <v-list-item-content>
-                <div class="overline mb-4">OVERLINE</div>
-                <v-list-item-title class="headline mb-1">Headline 5</v-list-item-title>
-                <v-list-item-subtitle>Greyhound divisely hello coldly fonwderfully</v-list-item-subtitle>
-            </v-list-item-content>
+        <!-- type and status-->
+        <v-card-title>
+            <v-chip class="ma-2" label>
+                {{ document.product }}
+            </v-chip>
 
-            <v-list-item-avatar
-                    tile
-                    size="80"
-                    color="grey"
-            ></v-list-item-avatar>
-        </v-list-item>
+            <!-- handling the completion -->
+            <v-chip
+                    v-if="document.status === 'Not Completed'"
+                    class="ma-2"
+                    color="red"
+                    label
+                    text-color="white">
+                <v-icon left>mdi-label</v-icon>
+                {{ document.status }}
 
-        <v-card-actions>
-            <v-btn text>Button</v-btn>
-            <v-btn text>Button</v-btn>
-        </v-card-actions>
+            </v-chip>
+            <v-chip
+                    v-if="document.status === 'Pending'"
+                    class="ma-2"
+                    color="orange"
+                    label
+                    text-color="white">
+                <v-icon left>mdi-label</v-icon>
+                {{ document.status }}
+
+            </v-chip>
+            <v-chip
+                    v-if="document.status === 'Completed'"
+                    class="ma-2"
+                    color="green"
+                    label
+                    text-color="white">
+                <v-icon left>mdi-label</v-icon>
+                {{ document.status }}
+
+            </v-chip>
+        </v-card-title>
+
+        <v-card-subtitle>
+            <span class="display-1 font-weight-light">
+                {{ document.name }}
+            </span>
+        </v-card-subtitle>
+
+        <v-card-text>
+            <span class="black--text">
+                {{ document.text }}
+            </span>
+        </v-card-text>
     </v-card>
 </template>
 
 <script>
     export default {
-        name: "request"
+        name: "request",
+        props: {
+            document: Object
+        },
+        data() {
+            return {
+
+            }
+        }
     }
 </script>
 
