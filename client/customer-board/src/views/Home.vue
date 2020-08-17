@@ -1,5 +1,5 @@
 <template>
-  <div id="home" class="fill-height">
+  <div class="fill-height home">
     <HelloWorld/>
   </div>
 </template>
@@ -28,7 +28,7 @@ export default {
       background-color: #5E3939
     }
   }
-  #home {
+  .home {
     -webkit-animation: bgcolor 20s infinite;
     animation: bgcolor 10s infinite;
     -webkit-animation-direction: alternate;

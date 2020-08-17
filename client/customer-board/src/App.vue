@@ -12,7 +12,7 @@
         />
 
         <span class="headline text-uppercase font-weight-light black--text">
-          Jazzia Customer Service App
+          Jazzia
         </span>
       </div>
 
