@@ -15,19 +15,6 @@ admin.initializeApp({
 // init firestore
 const db = admin.firestore();
 
-function postHuman(name, age){
-    var obj = {
-        name: name,
-        age: age
-    } 
-
-    return db.collection('sampleData').doc('Persons')
-    .set(obj, { merge: true }).then(() => {
-        console.log('added something to the database');
-    });
-
-}
-
 // works!
 module.exports = {
     // post an example request out to firebase
@@ -60,6 +47,31 @@ module.exports = {
             }).catch((e) => {
                 console.log(chalk.red(`Posting Request To Firebase Failed with error: ${e}`));
             });
+        })
+    },
+    addIdeaToRequest(id, text){
+        // fetch the information from the database and then add it back
+        return new Promise(async (resolve, reject) => {
+          const request = await db.collection('requests').doc(id).get();
+          if(!request.exists){
+              console.log(chalk.red("the document " + id + " does not exist."))
+              reject("the document " + id + " does not exist.")
+          } else {
+              var data = request.data();
+              console.log(chalk.greenBright("Document Retreieved: " + data.text ))
+
+              var finalized = text.replace(",", " ");
+              // update the text by concentation
+              data.text += " " + finalized;
+
+              // then post the information.
+              db.collection('requests').doc(id).set(data ,{merge: true}).then(() => {
+                console.log('updated the database');
+                resolve(" content updated sucessfully");
+              }).catch((err) => {
+                console.log(chalk.red(`Posting Request To Firebase Failed with error: ${e}`));
+              })
+          }
         })
     }
 }

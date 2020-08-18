@@ -123,12 +123,12 @@ async function sayHi(event) {
     console.log(chalk.yellow("Posting......"))
     post(requestConfig).then((res) => {
       // change state here
-      console.log(chalk.magenta(JSON.stringify(res)))
+      //console.log(chalk.magenta(JSON.stringify(res)))
 
       //transition to the right state?
       responder.fsm.goto(target_state);
 
-      responder.updateStatus(`State changed to (RequestState): ${responder.fsm.state}\n\n=======`)
+      responder.updateStatus(`State changed to ?: ${responder.fsm.state}\n\n=======`)
       return // maybe this would only mke it go once
     });
 

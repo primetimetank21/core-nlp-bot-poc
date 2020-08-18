@@ -12,6 +12,7 @@ const fs = require("../firebase/firestore")
 const { v4:newUuid, parse } = require('uuid');
 var moment = require('moment');
 var keyword_extractor = require('keyword-extractor'); // extract the keywords
+var responses = require("./util/responses"); // should the able to fetch information from here
 
 module.exports = class Brain {
     
@@ -20,9 +21,9 @@ module.exports = class Brain {
         this.fsm = new StateMachine({
             //init: 'InitState',
             transitions: [
-              {name: 'initialize', from: 'none', to: 'InitState'},
+              {name: 'initialize', from: 'none', to: 'InitState'}, // FOR DEBUG PURPOSES
               {name: 'costRequest', from: 'InitState', to:'RequestState'}, // user makes a request -> a request is detected
-              {name: 'ideaSubmission', from: 'RequestState', to:'ReviewState'}, // user submits an idea, goes to review
+              {name: 'ideaSubmission', from: 'RequestState', to:'CommandState'}, // user submits an idea, goes to review
               {name: 'reset', from: "*", to: 'InitState'}, // probably won't use very often
               {name: 'goto', from: "*", to: function(s){ return s}} 
             ],
@@ -79,13 +80,37 @@ module.exports = class Brain {
         // placeholder variable -> should remove in final cut
         this.status = 'Just Created'
 
-        // configuration for the extractor
-        this.extractor_config = {
-            language:"english",
-            remove_digits: true,
-            return_changed_case:true,
-            remove_duplicates: false
-       }
+        // commands and their extractor values
+        this.commands = {
+            "$idea": {
+                name: "idea",
+                callbackFunction: async (body) => {
+                    var text = body.join() 
+                    var result = await fs.addIdeaToRequest(this.UID, text);
+
+                    console.log("Result: " + result)
+                    //console.log("This information will be inputted in the databse: " + chalk.magentaBright(body.join().replace(",", " ")))
+                }
+            },
+            "$request": {
+                name: "request",
+                callbackFunction: () => {
+                    console.log(chalk.magentaBright("handling a request...."))
+                }
+            },
+            "$cancel": {
+                name: "cancel",
+                callbackFunction: () => {
+                    console.log(chalk.magentaBright("canceling an idea...."))
+                }
+            },
+            "$help": {
+                name: "help",
+                callbackFunction: () => {
+                    console.log(chalk.magentaBright("handling a help request...."))
+                }
+            },
+        }
 
         // init the bot
         this.fsm.initialize();
@@ -94,9 +119,11 @@ module.exports = class Brain {
     generatePriceList(){
         /**Generate a price list based on the products above */
         var priceListString = ''
+
         for(var i = 0; i < this.productNamesCost.length; i++){
             priceListString += `${this.productNamesCost[i].name} range from ${this.productNamesCost[i].cost}.\n`
         }
+
         return priceListString
     }
 
@@ -167,11 +194,29 @@ module.exports = class Brain {
 
             // post to the database in firestore
             // ISSUE HERE: user should be able to add new information to an existing request
-            var completed = await fs.postRequest(newUuid(), requestFromClient)
+            var completed = await fs.postRequest(this.UID, requestFromClient)
 
             resolve(completed);
 
         })
+    }
+
+    respondToCommand(msg, usn){
+        var command = msg.shift() // command is the first token of the msg
+        console.log("this is the command: " + command);
+
+        var commandObject = this.commands[command];
+
+        console.log(commandObject);
+
+        // if it is empty, then return that the command was not understood.
+        if(_.isEmpty(commandObject)){
+            console.log(chalk.redBright("The command was not understood"));
+            return;
+        }
+
+        // if it is not empty, then you call the function
+        commandObject.callbackFunction(msg);
     }
 
     updateStatus(str){
@@ -186,7 +231,7 @@ module.exports = class Brain {
         var lc = incomingMessage.split(' ');
 
         // handle the initState
-        console.log(chalk.yellowBright("from respond method...\n"))
+        console.log(chalk.yellowBright("from respondssss method...\n"))
 
         // handle submission of an idea
         if(this.fsm.state === 'RequestState'){
@@ -198,12 +243,13 @@ module.exports = class Brain {
                                 `She should respond within the next ${this.waitTime} hours.` +
                                 `When she does we'll notify you if your request was accepted!\n\n` + 
                                 `You can send more text of your idea if you'd like while you wait!\n\n` + 
-                                `Feel free to make another request using the command /request.\n` +
-                                `\nIf you have any questions, do "/help" \n` +
-                                `If you would like to report an issue, do "/issue"`+
+                                `Feel free to make another request using the command $request.\n` +
+                                `\nIf you have any questions, do "$help" \n` +
+                                `If you would like to report an issue, do "$issue"`+
                                 `${this.disclaimer}`
 
-                serverCallback(response, 'InitState')
+                // serverCallback(response, 'InitState')
+                serverCallback(response, 'CommandState')
             }).catch(e => {
                 serverCallback(`It looks like we ran into an error: ${e}`)
             })
@@ -222,11 +268,21 @@ module.exports = class Brain {
                     // transition state
                     //this.fsm.costRequest();
 
-                    
-
                     // transition to the regular state
                     serverCallback(resp, 'RequestState');
                 }).catch(e => console.log(chalk.red(`Responding to Cost Request Failed with error: ${e}`)));
+        }
+
+        // do a state where commands can be used
+        if(this.fsm.state === 'CommandState'){
+            // update the status 
+            this.updateStatus("Handling Command State")
+
+            console.log(chalk.yellowBright("Handling inside the command methods....\n"))
+
+            // handle the incoming information 
+            this.respondToCommand(lc, customerName);
+
         }
 
         
