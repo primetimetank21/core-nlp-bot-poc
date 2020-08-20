@@ -21,7 +21,7 @@ module.exports = class Brain {
         this.fsm = new StateMachine({
             //init: 'InitState',
             transitions: [
-              {name: 'initialize', from: 'none', to: 'InitState'}, // FOR DEBUG PURPOSES
+              {name: 'initialize', from: 'none', to: 'InitState'},
               {name: 'costRequest', from: 'InitState', to:'RequestState'}, // user makes a request -> a request is detected
               {name: 'ideaSubmission', from: 'RequestState', to:'CommandState'}, // user submits an idea, goes to review
               {name: 'reset', from: "*", to: 'InitState'}, // probably won't use very often
@@ -80,36 +80,54 @@ module.exports = class Brain {
         // placeholder variable -> should remove in final cut
         this.status = 'Just Created'
 
+        // SHOULD PROBABLY SEPARATE THIS OUT!
         // commands and their extractor values
         this.commands = {
             "$idea": {
                 name: "idea",
+                toState: 'CommandState', // tells what state to go to
                 callbackFunction: async (body) => {
-                    var text = body.join() 
-                    var result = await fs.addIdeaToRequest(this.UID, text);
+                    var text = body.join(" ") 
 
-                    console.log("Result: " + result)
+                    // try to update the database
+                    try {
+                        let res = await fs.addIdeaToRequest(this.UID, text);
+                        return "Your current request has been updated!";
+                    } catch (err) {
+                        throw err; // send the error back up the chain
+                    }
+                    
                     //console.log("This information will be inputted in the databse: " + chalk.magentaBright(body.join().replace(",", " ")))
                 }
             },
             "$request": {
                 name: "request",
+                toState: "RequestState",
                 callbackFunction: () => {
                     console.log(chalk.magentaBright("handling a request...."))
                 }
             },
             "$cancel": {
                 name: "cancel",
+                toState: "InitState",
                 callbackFunction: () => {
                     console.log(chalk.magentaBright("canceling an idea...."))
                 }
             },
             "$help": {
                 name: "help",
+                toState: "CommandState",
                 callbackFunction: () => {
                     console.log(chalk.magentaBright("handling a help request...."))
-                }
+                },
             },
+            "$exit": {
+                name: "exit",
+                toState: "none",
+                callbackFunction: () => {
+                    console.log(chalk.magentaBright("exiting the application...."))
+                }
+            }
         }
 
         // init the bot
@@ -201,7 +219,7 @@ module.exports = class Brain {
         })
     }
 
-    respondToCommand(msg, usn){
+    async respondToCommand(msg, usn){
         var command = msg.shift() // command is the first token of the msg
         console.log("this is the command: " + command);
 
@@ -212,11 +230,19 @@ module.exports = class Brain {
         // if it is empty, then return that the command was not understood.
         if(_.isEmpty(commandObject)){
             console.log(chalk.redBright("The command was not understood"));
-            return;
+            return "The command was not understood.";
         }
 
+        // try catch block to deal with the async await
+        try {
+            let res = await commandObject.callbackFunction(msg);
+            // this way we can return multiple values
+            return { res, commandObject }
+
+        } catch(err) {
+            console.log(chalk.red(err.message))
+        }
         // if it is not empty, then you call the function
-        commandObject.callbackFunction(msg);
     }
 
     updateStatus(str){
@@ -231,7 +257,7 @@ module.exports = class Brain {
         var lc = incomingMessage.split(' ');
 
         // handle the initState
-        console.log(chalk.yellowBright("from respondssss method...\n"))
+        console.log(chalk.yellowBright("from respond method...\n"))
 
         // handle submission of an idea
         if(this.fsm.state === 'RequestState'){
@@ -281,7 +307,15 @@ module.exports = class Brain {
             console.log(chalk.yellowBright("Handling inside the command methods....\n"))
 
             // handle the incoming information 
-            this.respondToCommand(lc, customerName);
+            this.respondToCommand(lc, customerName).then((resp) => {
+                //update the status
+                this.updateStatus("Responded to command, changing state...")
+
+                // transition place depends on a lot of things?
+                serverCallback(resp.res, resp.commandObject.toState)
+            }).catch(() => {
+
+            })
 
         }
 
