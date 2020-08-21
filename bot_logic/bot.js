@@ -83,6 +83,7 @@ module.exports = class Brain {
         // SHOULD PROBABLY SEPARATE THIS OUT!
         // commands and their extractor values
         this.commands = {
+            // this is completed
             "$idea": {
                 name: "idea",
                 toState: 'CommandState', // tells what state to go to
@@ -104,6 +105,19 @@ module.exports = class Brain {
                 name: "request",
                 toState: "RequestState",
                 callbackFunction: () => {
+                    /*
+                    - Start a new Request
+                    - get a new uid
+                    - act as if the inquiry has already been asked
+                    */ 
+                    // 
+
+                    this.UID = newUuid();
+
+                    // just send the generic response
+                    this.respondToCostRequest().then((resp) => {
+                        return resp
+                    })
                     console.log(chalk.magentaBright("handling a request...."))
                 }
             },
@@ -118,7 +132,9 @@ module.exports = class Brain {
                 name: "help",
                 toState: "CommandState",
                 callbackFunction: () => {
-                    console.log(chalk.magentaBright("handling a help request...."))
+                    var help_text = "If you would like more information on how to use this service " +
+                    "please visit: www.jazzia-bot.com/help."
+                    return help_text
                 },
             },
             "$exit": {
@@ -126,7 +142,13 @@ module.exports = class Brain {
                 toState: "none",
                 callbackFunction: () => {
                     console.log(chalk.magentaBright("exiting the application...."))
+
+                    return "The bot is no longer active in this DM."
                 }
+            },
+            // special state
+            "error": {
+                toState: "CommandState"
             }
         }
 
@@ -195,6 +217,8 @@ module.exports = class Brain {
         // // get the type of project
         // var keywords = 
 
+        // should refractor this to use try catch with await
+
         return new Promise(async (resolve) => {
             console.log(chalk.yellowBright("responding to idea submission..."))
             
@@ -221,16 +245,20 @@ module.exports = class Brain {
 
     async respondToCommand(msg, usn){
         var command = msg.shift() // command is the first token of the msg
-        console.log("this is the command: " + command);
+        //console.log("this is the command: " + command);
 
         var commandObject = this.commands[command];
 
-        console.log(commandObject);
+        //console.log(commandObject);
 
         // if it is empty, then return that the command was not understood.
         if(_.isEmpty(commandObject)){
-            console.log(chalk.redBright("The command was not understood"));
-            return "The command was not understood.";
+            var response = "The command was not understood."
+            var obj = this.commands["error"];
+
+            // this should whork out fine??
+            console.log(chalk.redBright(response));
+            return {response, obj}
         }
 
         // try catch block to deal with the async await

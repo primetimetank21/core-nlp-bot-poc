@@ -13,11 +13,6 @@
                             <Dashboard/>
                         </div>
                     </v-col>
-                    <v-col>
-                        <div class="fill-height home">
-                            <Dashboard/>
-                        </div>
-                    </v-col>
                 </v-row>
             </v-container>
         </v-card-text>
